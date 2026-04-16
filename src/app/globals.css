@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+/* Scan line animation for scanner overlay */
+@keyframes scan-line {
+  0% { transform: translateY(-60px); opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { transform: translateY(60px); opacity: 0.8; }
+}
+
+.animate-scan-line {
+  animation: scan-line 1.5s ease-in-out infinite alternate;
+}
+
+/* Safe area for bottom nav on iOS */
+.h-safe-area-inset-bottom {
+  height: env(safe-area-inset-bottom, 0px);
+}
+
+/* Custom scrollbar for dark theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+  border-radius: 2px;
+}
+
+/* Prevent zoom on input focus on iOS */
+input[type="text"],
+input[type="number"],
+input[type="url"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
