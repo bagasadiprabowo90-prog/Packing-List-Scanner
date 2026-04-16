@@ -1,7 +1,7 @@
 import type { FormData, MasterProduct } from "@/types";
 
 const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || "1PeE9FlLHsoD5auL-KNaB561wfyh9mjSUZ2lKITnIokg";
-const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyIyYpjtjO8HBmZ4K8i446kN1_gP7hXlPNXdOZoEOPPcI1FYnWcSVzLfsde97s-XZOX/exec";
+const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyo6gUDNf6vx2uZLsilnQEtazgRciiKtOjkz_WFEH6DRoUK9dt4WYgVldJKIihLc7Yz/exec";
 
 function getSheetUrl(sheetName: string): string {
   return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
