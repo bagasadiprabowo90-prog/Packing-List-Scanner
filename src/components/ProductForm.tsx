@@ -100,23 +100,20 @@ export default function ProductForm({
     [allProducts, productSearch]
   );
 
-  // Batches available for selected product
-  const availableBatches = useMemo(
+  // All unique batches from master data
+  const allBatches = useMemo(
     () =>
-      masterData
-        .filter((p) => p.product === product)
-        .map((p) => p.batch)
-        .filter(Boolean),
-    [masterData, product]
+      Array.from(new Set(masterData.map((p) => p.batch).filter(Boolean))).sort(),
+    [masterData]
   );
 
   // Filtered batches by search
   const filteredBatches = useMemo(
     () =>
-      availableBatches.filter((b) =>
+      allBatches.filter((b) =>
         b.toLowerCase().includes(batchSearch.toLowerCase())
       ),
-    [availableBatches, batchSearch]
+    [allBatches, batchSearch]
   );
 
   // Close dropdowns when clicking outside
@@ -284,22 +281,19 @@ export default function ProductForm({
             onChange={(e) => {
               setBatchSearch(e.target.value);
               setBatch(e.target.value);
-              setBatchDropdownOpen(true);
+              if (allBatches.length > 0) setBatchDropdownOpen(true);
             }}
             onFocus={() => {
-              if (availableBatches.length > 0) setBatchDropdownOpen(true);
+              if (allBatches.length > 0) setBatchDropdownOpen(true);
             }}
             placeholder={
-              product
-                ? availableBatches.length > 0
-                  ? `Search batch (${availableBatches.length} available)`
-                  : "Type batch manually"
-                : "Select product first"
+              allBatches.length > 0
+                ? `Search batch (${allBatches.length} available)`
+                : "Type batch manually"
             }
-            disabled={!product}
-            className="w-full rounded-lg bg-gray-800 border border-gray-600 text-white px-3 py-2.5 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder-gray-500 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-gray-800 border border-gray-600 text-white px-3 py-2.5 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder-gray-500"
           />
-          {availableBatches.length > 0 && (
+          {allBatches.length > 0 && (
             <button
               type="button"
               onMouseDown={() => setBatchDropdownOpen((v) => !v)}
