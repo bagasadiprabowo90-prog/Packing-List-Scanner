@@ -59,43 +59,25 @@ export async function fetchMasterData(): Promise<MasterProduct[]> {
   }
 
   try {
-    // Try direct fetch first (works in some browsers)
-    let data: MasterProduct[] = [];
     const url = `${APPS_SCRIPT_URL}?action=getMasterData`;
+    const proxyUrl = getProxyUrl(url);
     
-    try {
-      const response = await fetch(url, { 
-        method: "GET",
-        mode: "no-cors" 
-      });
-      const text = await response.text();
-      if (text && text.startsWith("[")) {
-        const json = JSON.parse(text);
-        data = json.map((item: Record<string, unknown>) => ({
-          sku: String(item.sku ?? ""),
-          product: String(item.product ?? ""),
-          barcode: String(item.barcode ?? ""),
-          netGram: Number(item.netGram ?? 0),
-          grossGram: Number(item.grossGram ?? 0),
-          kg: Number(item.kg ?? 0),
-          batch: String(item.batch ?? ""),
-        }));
-      }
-    } catch {
-      // Fallback to proxy
-      const proxyUrl = getProxyUrl(url);
-      const response = await fetch(proxyUrl, { method: "GET" });
-      const json = await response.json();
-      data = json.map((item: Record<string, unknown>) => ({
-        sku: String(item.sku ?? ""),
-        product: String(item.product ?? ""),
-        barcode: String(item.barcode ?? ""),
-        netGram: Number(item.netGram ?? 0),
-        grossGram: Number(item.grossGram ?? 0),
-        kg: Number(item.kg ?? 0),
-        batch: String(item.batch ?? ""),
-      }));
+    const response = await fetch(proxyUrl, { method: "GET" });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
+    
+    const json = await response.json();
+    const data: MasterProduct[] = json.map((item: Record<string, unknown>) => ({
+      sku: String(item.sku ?? ""),
+      product: String(item.product ?? ""),
+      barcode: String(item.barcode ?? ""),
+      netGram: Number(item.netGram ?? 0),
+      grossGram: Number(item.grossGram ?? 0),
+      kg: Number(item.kg ?? 0),
+      batch: String(item.batch ?? ""),
+    }));
 
     // Cache the data
     if (typeof window !== "undefined" && data.length > 0) {
