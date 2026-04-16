@@ -1,7 +1,7 @@
 import type { FormData, MasterProduct } from "@/types";
 
-const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID ?? "";
-const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL ?? "";
+const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || "1PeE9FlLHsoD5auL-KNaB561wfyh9mjSUZ2lKITnIokg";
+const APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyIyYpjtjO8HBmZ4K8i446kN1_gP7hXlPNXdOZoEOPPcI1FYnWcSVzLfsde97s-XZOX/exec";
 
 function getSheetUrl(sheetName: string): string {
   return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
@@ -12,12 +12,6 @@ function getSheetUrl(sheetName: string): string {
  * Uses Google Sheets API via CSV export (Gviz) approach
  */
 export async function submitEntry(data: FormData): Promise<void> {
-  if (!SPREADSHEET_ID) {
-    throw new Error(
-      "NEXT_PUBLIC_SPREADSHEET_ID is not set. Add it to your .env.local file."
-    );
-  }
-
   const payload = {
     timestamp: new Date().toISOString(),
     cartonNumber: data.cartonNumber,
@@ -45,11 +39,6 @@ export async function submitEntry(data: FormData): Promise<void> {
  * Uses Google Sheets API via CSV export (Gviz) approach
  */
 export async function fetchMasterData(): Promise<MasterProduct[]> {
-  if (!SPREADSHEET_ID) {
-    console.warn("NEXT_PUBLIC_SPREADSHEET_ID not set – using empty master data.");
-    return [];
-  }
-
   if (APPS_SCRIPT_URL) {
     try {
       const url = `${APPS_SCRIPT_URL}?action=getMasterData`;
