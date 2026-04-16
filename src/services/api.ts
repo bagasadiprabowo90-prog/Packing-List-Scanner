@@ -44,14 +44,15 @@ export async function fetchMasterData(): Promise<MasterProduct[]> {
       const url = `${APPS_SCRIPT_URL}?action=getMasterData`;
       const response = await fetch(url, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        mode: "no-cors",
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const text = await response.text();
+      if (!text || text === "OK" || text === "") {
+        return [];
       }
 
-      const json = await response.json();
+      const json = JSON.parse(text);
       const arr: unknown[] = Array.isArray(json) ? json : (json?.data ?? []);
 
       return arr.map((item: unknown) => {
