@@ -40,33 +40,72 @@ export async function submitEntry(data: FormData): Promise<void> {
 
 /**
  * Fetch master product data from Google Sheet
- * Uses Google Sheets API via CSV export (Gviz) approach
+ * Uses Google Apps Script with CORS proxy
  */
 export async function fetchMasterData(): Promise<MasterProduct[]> {
-  try {
-    const appsScriptUrl = `${APPS_SCRIPT_URL}?action=getMasterData`;
-    const proxyUrl = getProxyUrl(appsScriptUrl);
-    const response = await fetch(proxyUrl, { method: "GET" });
+  const cacheKey = "masterDataCache";
+  
+  // Check localStorage first
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed.data && parsed.timestamp && Date.now() - parsed.timestamp < 3600000) {
+          return parsed.data;
+        }
+      } catch {}
+    }
+  }
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  try {
+    // Try direct fetch first (works in some browsers)
+    let data: MasterProduct[] = [];
+    const url = `${APPS_SCRIPT_URL}?action=getMasterData`;
+    
+    try {
+      const response = await fetch(url, { 
+        method: "GET",
+        mode: "no-cors" 
+      });
+      const text = await response.text();
+      if (text && text.startsWith("[")) {
+        const json = JSON.parse(text);
+        data = json.map((item: Record<string, unknown>) => ({
+          sku: String(item.sku ?? ""),
+          product: String(item.product ?? ""),
+          barcode: String(item.barcode ?? ""),
+          netGram: Number(item.netGram ?? 0),
+          grossGram: Number(item.grossGram ?? 0),
+          kg: Number(item.kg ?? 0),
+          batch: String(item.batch ?? ""),
+        }));
+      }
+    } catch {
+      // Fallback to proxy
+      const proxyUrl = getProxyUrl(url);
+      const response = await fetch(proxyUrl, { method: "GET" });
+      const json = await response.json();
+      data = json.map((item: Record<string, unknown>) => ({
+        sku: String(item.sku ?? ""),
+        product: String(item.product ?? ""),
+        barcode: String(item.barcode ?? ""),
+        netGram: Number(item.netGram ?? 0),
+        grossGram: Number(item.grossGram ?? 0),
+        kg: Number(item.kg ?? 0),
+        batch: String(item.batch ?? ""),
+      }));
     }
 
-    const json = await response.json();
-    const arr: unknown[] = Array.isArray(json) ? json : (json?.data ?? []);
+    // Cache the data
+    if (typeof window !== "undefined" && data.length > 0) {
+      localStorage.setItem(cacheKey, JSON.stringify({
+        data,
+        timestamp: Date.now()
+      }));
+    }
 
-    return arr.map((item: unknown) => {
-      const row = item as Record<string, unknown>;
-      return {
-        sku: String(row.sku ?? ""),
-        product: String(row.product ?? ""),
-        barcode: String(row.barcode ?? ""),
-        netGram: Number(row.netGram ?? 0),
-        grossGram: Number(row.grossGram ?? 0),
-        kg: Number(row.kg ?? 0),
-        batch: String(row.batch ?? ""),
-      };
-    });
+    return data;
   } catch (e) {
     console.error("Failed to fetch master data:", e);
     return [];
