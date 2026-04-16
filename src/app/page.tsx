@@ -12,7 +12,7 @@ const Scanner = dynamic(() => import("@/components/Scanner"), { ssr: false });
 // Dynamically import ProductForm (uses browser APIs)
 const ProductForm = dynamic(() => import("@/components/ProductForm"), { ssr: false });
 
-type Tab = "scan" | "log" | "summary" | "settings";
+type Tab = "scan" | "log" | "summary";
 
 function generateId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -28,7 +28,6 @@ export default function Home() {
   const [entries, setEntries] = useState<ScanEntry[]>([]);
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
   const [cartonNumber, setCartonNumber] = useState("1");
-  const [scriptUrl, setScriptUrl] = useState("");
 
   // Load master data on mount
   useEffect(() => {
@@ -126,16 +125,6 @@ export default function Home() {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-    },
-    {
-      key: "settings",
-      label: "Settings",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
     },
@@ -255,79 +244,6 @@ export default function Home() {
           <div className="px-4 pt-4 flex flex-col gap-4">
             <h2 className="font-semibold text-gray-200">Pivot Summary</h2>
             <ScanSummary entries={entries} />
-          </div>
-        )}
-
-        {/* SETTINGS TAB */}
-        {tab === "settings" && (
-          <div className="px-4 pt-4 flex flex-col gap-5">
-            <h2 className="font-semibold text-gray-200">Settings</h2>
-
-            {/* Apps Script URL */}
-            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 flex flex-col gap-3">
-              <div>
-                <h3 className="font-semibold text-sm text-gray-200">Google Apps Script URL</h3>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Set <code className="bg-gray-800 px-1 rounded text-purple-300">NEXT_PUBLIC_APPS_SCRIPT_URL</code> in your <code className="bg-gray-800 px-1 rounded text-purple-300">.env.local</code> file, or paste it here for this session only.
-                </p>
-              </div>
-              <input
-                type="url"
-                value={scriptUrl}
-                onChange={(e) => setScriptUrl(e.target.value)}
-                placeholder="https://script.google.com/macros/s/.../exec"
-                className="w-full rounded-lg bg-gray-800 border border-gray-600 text-white px-3 py-2.5 text-xs font-mono focus:outline-none focus:border-purple-500"
-              />
-              <p className="text-xs text-gray-500">
-                Current env URL: {process.env.NEXT_PUBLIC_APPS_SCRIPT_URL ? "✅ Set" : "❌ Not set"}
-              </p>
-            </div>
-
-            {/* Master data info */}
-            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 flex flex-col gap-3">
-              <h3 className="font-semibold text-sm text-gray-200">Master Data</h3>
-              <div className="text-xs text-gray-400 space-y-1">
-                <p>Products loaded: <span className="text-white font-bold">{masterData.length}</span></p>
-                <p>Unique SKUs: <span className="text-white font-bold">{new Set(masterData.map((p) => p.sku)).size}</span></p>
-                <p>Unique batches: <span className="text-white font-bold">{new Set(masterData.map((p) => p.batch).filter(Boolean)).size}</span></p>
-              </div>
-              <button
-                onClick={loadMasterData}
-                disabled={masterLoading}
-                className="flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 disabled:opacity-40"
-              >
-                <svg className={`w-4 h-4 ${masterLoading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                {masterLoading ? "Refreshing..." : "Refresh master data"}
-              </button>
-            </div>
-
-            {/* GAS Setup Guide */}
-            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 flex flex-col gap-2">
-              <h3 className="font-semibold text-sm text-gray-200">Apps Script Setup Guide</h3>
-              <ol className="text-xs text-gray-400 space-y-2 list-decimal list-inside">
-                <li>Open your Google Sheet → Extensions → Apps Script</li>
-                <li>Replace the default code with the template from <code className="bg-gray-800 px-1 rounded text-purple-300">src/services/api.ts</code></li>
-                <li>Deploy → New deployment → Web app</li>
-                <li>Execute as: <strong className="text-gray-300">Me</strong>, Access: <strong className="text-gray-300">Anyone</strong></li>
-                <li>Copy the deployment URL and set it as <code className="bg-gray-800 px-1 rounded text-purple-300">NEXT_PUBLIC_APPS_SCRIPT_URL</code></li>
-              </ol>
-            </div>
-
-            {/* Column mapping */}
-            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800">
-              <h3 className="font-semibold text-sm text-gray-200 mb-2">Master Product Sheet Columns</h3>
-              <div className="grid grid-cols-2 gap-y-1 text-xs text-gray-400">
-                <span>A → SKU</span>
-                <span>B → Product Name</span>
-                <span>C → Barcode</span>
-                <span>D → Net (gram)</span>
-                <span>E → Gross (gram)</span>
-                <span>F → Kg/pcs</span>
-                <span>I → Batch Number</span>
-              </div>
-            </div>
           </div>
         )}
       </main>
