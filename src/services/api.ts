@@ -7,6 +7,10 @@ function getSheetUrl(sheetName: string): string {
   return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 }
 
+function getProxyUrl(url: string): string {
+  return `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+}
+
 /**
  * Submit a single form entry to Google Sheet
  * Uses Google Sheets API via CSV export (Gviz) approach
@@ -39,43 +43,10 @@ export async function submitEntry(data: FormData): Promise<void> {
  * Uses Google Sheets API via CSV export (Gviz) approach
  */
 export async function fetchMasterData(): Promise<MasterProduct[]> {
-  if (APPS_SCRIPT_URL) {
-    try {
-      const url = `${APPS_SCRIPT_URL}?action=getMasterData`;
-      const response = await fetch(url, {
-        method: "GET",
-        mode: "no-cors",
-      });
-
-      const text = await response.text();
-      if (!text || text === "OK" || text === "") {
-        return [];
-      }
-
-      const json = JSON.parse(text);
-      const arr: unknown[] = Array.isArray(json) ? json : (json?.data ?? []);
-
-      return arr.map((item: unknown) => {
-        const row = item as Record<string, unknown>;
-        return {
-          sku: String(row.sku ?? ""),
-          product: String(row.product ?? ""),
-          barcode: String(row.barcode ?? ""),
-          netGram: Number(row.netGram ?? 0),
-          grossGram: Number(row.grossGram ?? 0),
-          kg: Number(row.kg ?? 0),
-          batch: String(row.batch ?? ""),
-        };
-      });
-    } catch (e) {
-      console.error("Failed to fetch master data:", e);
-      return [];
-    }
-  }
-
   try {
-    const url = getSheetUrl("Master Product");
-    const response = await fetch(url, { method: "GET" });
+    const sheetUrl = getSheetUrl("Master Product");
+    const proxyUrl = getProxyUrl(sheetUrl);
+    const response = await fetch(proxyUrl, { method: "GET" });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
