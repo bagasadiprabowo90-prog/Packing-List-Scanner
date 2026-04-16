@@ -59,7 +59,7 @@ export async function fetchMasterData(): Promise<MasterProduct[]> {
   }
 
   try {
-    const url = `${APPS_SCRIPT_URL}?action=getMasterData`;
+    const url = `${APPS_SCRIPT_URL}?action=products`;
     const proxyUrl = getProxyUrl(url);
     
     const response = await fetch(proxyUrl, { method: "GET" });
@@ -69,14 +69,19 @@ export async function fetchMasterData(): Promise<MasterProduct[]> {
     }
     
     const json = await response.json();
-    const data: MasterProduct[] = json.map((item: Record<string, unknown>) => ({
+    
+    if (!json.ok) {
+      throw new Error(json.error || "Failed to fetch products");
+    }
+    
+    const data: MasterProduct[] = json.products.map((item: Record<string, unknown>) => ({
       sku: String(item.sku ?? ""),
       product: String(item.product ?? ""),
       barcode: String(item.barcode ?? ""),
-      netGram: Number(item.netGram ?? 0),
-      grossGram: Number(item.grossGram ?? 0),
-      kg: Number(item.kg ?? 0),
-      batch: String(item.batch ?? ""),
+      netGram: 0,
+      grossGram: 0,
+      kg: 0,
+      batch: "",
     }));
 
     // Cache the data
