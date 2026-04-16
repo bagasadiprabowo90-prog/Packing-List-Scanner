@@ -58,7 +58,8 @@ A mobile-first barcode scanner PWA for inputting product packing list data (BLP 
 
 | Variable | Purpose |
 |----------|---------|
-| `NEXT_PUBLIC_APPS_SCRIPT_URL` | Google Apps Script web app deployment URL |
+| `NEXT_PUBLIC_SPREADSHEET_ID` | Google Sheets spreadsheet ID (1PeE9FlLHsoD5auL-KNaB561wfyh9mjSUZ2lKITnIokg) |
+| `NEXT_PUBLIC_APPS_SCRIPT_URL` | (Optional) Google Apps Script web app deployment URL |
 
 ## Pending / Next Steps
 
