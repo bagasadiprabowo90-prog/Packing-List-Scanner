@@ -119,8 +119,9 @@ export async function fetchMasterData(): Promise<MasterProduct[]> {
     console.error("Failed to fetch master data from both sources:", e);
     return [];
   }
-}
-      } catch {}
+      }
+    } catch (e: unknown) {
+      console.warn("Apps Script failed, falling back to direct Sheets API:", e);
     }
   }
 
